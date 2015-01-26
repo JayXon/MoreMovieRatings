@@ -7,13 +7,13 @@ Show IMDb ratings on Douban, and vice versa
 * Metascore
 * Rotten Tomatoes Meter
 
-![Douban Screenshot](douban.png)
+![Douban Screenshot](https://github.com/JayXon/MoreMovieRatings/raw/master/douban.png)
 
 ### IMDb
 
 * Douban ratings and number of voters
 
-![IMDb Screenshot](imdb.png)
+![IMDb Screenshot](https://github.com/JayXon/MoreMovieRatings/raw/master/imdb.png)
 
 
 ## Install
