@@ -9,7 +9,7 @@
 // @grant        none
 // ==/UserScript==
 
-$(function() {
+(function() {
     var host = location.hostname;
     if (host === "movie.douban.com") {
         var id = $("#info a[href^='http://www.imdb.com/']").text();
@@ -65,4 +65,4 @@ $(function() {
             });
         }
     }
-});
+})();
