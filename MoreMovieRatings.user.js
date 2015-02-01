@@ -3,6 +3,7 @@
 // @namespace    http://www.jayxon.com/
 // @version      0.1.3
 // @description  Show IMDb ratings on Douban, and vice versa
+// @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
 // @match        *://movie.douban.com/subject/*
 // @match        http://www.imdb.com/title/tt*
