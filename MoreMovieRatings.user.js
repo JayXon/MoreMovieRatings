@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.1.4
+// @version      0.1.5
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -32,7 +32,7 @@
                         "<br><strong style=color:red class='ll'>IMDb:</strong>" +
                         "<br><span class='ll bigstar" + 5 * Math.round(data.imdbRating) + "'></span>" +
                         "<strong class='ll rating_num'>" + data.imdbRating + "</strong></div>" +
-                        "<br>(<a href=http://www.imdb.com/title/" + id + "/ratings target=_blank >" + data.imdbVotes.replace(/,/g, '') + "人评价</a>)"
+                        "<br>(<a href=http://www.imdb.com/title/" + id + "/ratings target=_blank>" + data.imdbVotes.replace(/,/g, '') + "人评价</a>)"
                     );
                 }
 
@@ -65,7 +65,8 @@
                     };
                     if (data.tomatoMeter !== "N/A") {
                         sectl.insertAdjacentHTML('beforeend',
-                            "<span style='background: url(data:image/png;base64," + tomatoimg[data.tomatoImage] + ") no-repeat; background-size: cover; width: 18px; height: 18px; margin: 0 2px; vertical-align: middle; display: inline-block'></span>" +
+                            "<a href=http://www.rottentomatoes.com/alias?type=imdbid&s=" + id.substring(2) + " target=_blank style='background:none'>" +
+                            "<span style='background: url(data:image/png;base64," + tomatoimg[data.tomatoImage] + ") no-repeat; background-size: cover; width: 18px; height: 18px; margin: 0 2px; vertical-align: middle; display: inline-block'></span></a>" +
                             "<span style='vertical-align: middle; display: inline-block; line-height: 18px'>" + data.tomatoMeter + "%</span>"
                         );
                     }
@@ -77,7 +78,8 @@
                             userimage = "spilled";
                         }
                         sectl.insertAdjacentHTML('beforeend',
-                            "<span style='background: url(data:image/png;base64," + tomatoimg[userimage] + ") no-repeat; background-size: cover; width: 18px; height: 18px; margin: 0 2px; vertical-align: middle; display: inline-block'></span>" +
+                            "<a href=http://www.rottentomatoes.com/alias?type=imdbid&s=" + id.substring(2) + " target=_blank style='background:none'>" +
+                            "<span style='background: url(data:image/png;base64," + tomatoimg[userimage] + ") no-repeat; background-size: cover; width: 18px; height: 18px; margin: 0 2px; vertical-align: middle; display: inline-block'></span></a>" +
                             "<span style='vertical-align: middle; display: inline-block; line-height: 18px'>" + data.tomatoUserMeter + "%</span>"
                         );
                     }
