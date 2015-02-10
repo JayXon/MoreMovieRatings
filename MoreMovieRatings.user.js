@@ -95,6 +95,9 @@
                 url: "https://api.douban.com/v2/movie/imdb/" + id,
                 onload: function(response) {
                     var data = JSON.parse(response.responseText);
+                    if (!data.alt) {
+                        return;
+                    }
                     var url = data.alt.replace('/movie/', '/subject/') + '/';
                     starbox.insertAdjacentHTML('beforeend',
                         "<br><a href='" + url + "' target=_blank>Douban</a>: " +
