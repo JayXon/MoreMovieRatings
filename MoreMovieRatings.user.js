@@ -65,8 +65,7 @@
                     };
                     if (data.tomatoMeter !== "N/A") {
                         sectl.insertAdjacentHTML('beforeend',
-                            "<a href=http://www.rottentomatoes.com/alias?type=imdbid&s=" + id.substring(2) + " target=_blank style='background:none'>" +
-                            "<span style='background: url(data:image/png;base64," + tomatoimg[data.tomatoImage] + ") no-repeat; background-size: cover; width: 18px; height: 18px; margin: 0 2px; vertical-align: middle; display: inline-block'></span></a>" +
+                            "<span style='background: url(data:image/png;base64," + tomatoimg[data.tomatoImage] + ") no-repeat; background-size: cover; width: 18px; height: 18px; margin: 0 2px; vertical-align: middle; display: inline-block'></span>" +
                             "<span style='vertical-align: middle; display: inline-block; line-height: 18px'>" + data.tomatoMeter + "%</span>"
                         );
                     }
@@ -78,8 +77,7 @@
                             userimage = "spilled";
                         }
                         sectl.insertAdjacentHTML('beforeend',
-                            "<a href=http://www.rottentomatoes.com/alias?type=imdbid&s=" + id.substring(2) + " target=_blank style='background:none'>" +
-                            "<span style='background: url(data:image/png;base64," + tomatoimg[userimage] + ") no-repeat; background-size: cover; width: 18px; height: 18px; margin: 0 2px; vertical-align: middle; display: inline-block'></span></a>" +
+                            "<span style='background: url(data:image/png;base64," + tomatoimg[userimage] + ") no-repeat; background-size: cover; width: 18px; height: 18px; margin: 0 2px; vertical-align: middle; display: inline-block'></span>" +
                             "<span style='vertical-align: middle; display: inline-block; line-height: 18px'>" + data.tomatoUserMeter + "%</span>"
                         );
                     }
