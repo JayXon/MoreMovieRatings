@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.1.5
+// @version      0.2.0
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -34,6 +34,29 @@
                         "<strong class='ll rating_num'>" + data.imdbRating + "</strong></div>" +
                         "<br>(<a href=http://www.imdb.com/title/" + id + "/ratings target=_blank>" + data.imdbVotes.replace(/,/g, '') + "人评价</a>)"
                     );
+                    // Check for IMDb Top 250
+                    if (data.imdbRating >= 8) {
+                        GM_xmlhttpRequest({
+                            method: 'GET',
+                            url: "http://app.imdb.com/chart/top",
+                            onload: function(top) {
+                                var list = JSON.parse(top.responseText).data.list.list;
+                                var number = function() {
+                                    for (var i = 0; i < list.length; i++)
+                                        if (list[i].tconst === id)
+                                            return i + 1;
+                                    return null;
+                                }();
+                                if (!number)
+                                    return;
+                                document.querySelector('h1').insertAdjacentHTML('beforebegin', '<div class="top250"><span class="top250-no">No.' + number + '</span><span class="top250-link"><a href="http://www.imdb.com/chart/top">IMDb Top 250</a></span></div>');
+                                var top250 = document.getElementsByClassName('top250');
+                                [].forEach.call(top250, function(e) {
+                                    e.style.display = 'inline-block';
+                                });
+                            }
+                        });
+                    }
                 }
 
                 // Metascore
