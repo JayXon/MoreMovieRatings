@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.2.0
+// @version      0.2.1
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -49,9 +49,14 @@
                                 }();
                                 if (!number)
                                     return;
+                                // inject css if needed
+                                if (document.getElementsByClassName('top250').length === 0) {
+                                    var style = document.createElement("style");
+                                    style.innerHTML = ".top250{background:url(https://s.doubanio.com/f/movie/f8a7b5e23d00edee6b42c6424989ce6683aa2fff/pics/movie/top250_bg.png) no-repeat;width:150px;font:12px Helvetica,Arial,sans-serif;margin:5px 0;color:#744900}.top250 span{display:inline-block;text-align:center;height:18px;line-height:18px}.top250 a,.top250 a:link,.top250 a:hover,.top250 a:active,.top250 a:visited{color:#744900;text-decoration:none;background:none}.top250-no{width:34%}.top250-link{width:66%}";
+                                    document.head.appendChild(style);
+                                }
                                 document.querySelector('h1').insertAdjacentHTML('beforebegin', '<div class="top250"><span class="top250-no">No.' + number + '</span><span class="top250-link"><a href="http://www.imdb.com/chart/top">IMDb Top 250</a></span></div>');
-                                var top250 = document.getElementsByClassName('top250');
-                                [].forEach.call(top250, function(e) {
+                                [].forEach.call(document.getElementsByClassName('top250'), function(e) {
                                     e.style.display = 'inline-block';
                                 });
                             }
