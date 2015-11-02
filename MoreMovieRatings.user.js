@@ -18,10 +18,10 @@
             return;
         }
         id = id.textContent;
-        // Have to use GM_xmlhttpRequest to get http json on https webpage
+        // TODO: since we are using https now, maybe we no longer needs GM_xmlhttpRequest.
         GM_xmlhttpRequest({
             method: 'GET',
-            url: 'http://www.omdbapi.com/?i=' + id + '&tomatoes=true',
+            url: 'https://www.omdbapi.com/?i=' + id + '&tomatoes=true',
             onload: function(response) {
                 var data = JSON.parse(response.responseText);
                 var ratings = document.createElement('div');
@@ -45,7 +45,7 @@
                     if (data.imdbRating >= 8) {
                         GM_xmlhttpRequest({
                             method: 'GET',
-                            url: 'http://app.imdb.com/chart/top',
+                            url: 'https://app.imdb.com/chart/top',
                             onload: function(top) {
                                 var list = JSON.parse(top.responseText).data.list.list;
                                 var number = function() {
