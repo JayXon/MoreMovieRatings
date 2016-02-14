@@ -137,9 +137,11 @@ function isEmpty(s) {
                 );
             }
         });
-    } else if (host === "www.imdb.com") {
-        var starbox = document.querySelector(".star-box-details");
-        if (!starbox)
+    } else if (host === 'www.imdb.com') {
+        var starbox = document.querySelector('.star-box-details');
+        if (document.querySelector('div.imdbRating'))
+            var new_ui = true;
+        if (!starbox && !new_ui)
             return;
         var id = location.href.match(/tt\d+/);
         if (!id)
@@ -152,12 +154,40 @@ function isEmpty(s) {
                 if (isEmpty(data.alt))
                     return;
                 var url = data.alt.replace('/movie/', '/subject/') + '/';
-                starbox.insertAdjacentHTML('beforeend',
-                    '<br><a href="' + url + '" target=_blank>Douban</a>: ' +
-                    '<strong><span itemprop=ratingValue>' + data.rating.average + '</span></strong>' +
-                    '<span class=mellow>/<span itemprop=bestRating>' + data.rating.max + '</span></span>' +
-                    ' from <a href="' + url + 'collections" target=_blank><span itemprop=ratingCount>' + data.rating.numRaters.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,') + '</span> users</a>'
+                var num_raters = data.rating.numRaters.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+                if (!new_ui) {
+                    starbox.insertAdjacentHTML('beforeend',
+                        '<br><a href="' + url + '" target=_blank>Douban</a>: ' +
+                        '<strong><span itemprop=ratingValue>' + data.rating.average + '</span></strong>' +
+                        '<span class=mellow>/<span itemprop=bestRating>' + data.rating.max + '</span></span>' +
+                        ' from <a href="' + url + 'collections" target=_blank><span itemprop=ratingCount>' + num_raters + '</span> users</a>'
+                    );
+                    return;
+                }
+                var review_bar = document.querySelector('div.titleReviewBar');
+                if (!review_bar) {
+                    review_bar = document.createElement('div');
+                    review_bar.setAttribute('class', 'titleReviewBar');
+                    var wrapper = document.querySelector('div.plot_summary_wrapper');
+                    if (!wrapper)
+                        return;
+                    wrapper.appendChild(review_bar);
+                } else {
+                    var divider = document.createElement('div');
+                    divider.setAttribute('class', 'divider');
+                    review_bar.insertBefore(divider, review_bar.firstChild);
+                }
+                review_bar.style.display = 'inline-table';
+                var douban_item = document.createElement('div');
+                douban_item.setAttribute('class', 'titleReviewBarItem');
+                douban_item.insertAdjacentHTML('beforeend',
+                    '<div style="background: url(http://ia.media-imdb.com/images/G/01/imdb/images/title/title_overview_sprite-2406345693._V_.png) no-repeat; background-position: -15px -124px; line-height: 14px; padding: 0 0 0 34px; font-size: 10px"><div class="ratingValue">' +
+                    '<strong><span style="font-size: 22px; font-weight: normal; font-family: Arial">' + data.rating.average + '</span></strong>' + 
+                    '<span>/</span><span style="color: #6b6b6b">' + data.rating.max + '</span></div>' +
+                    '<span><a href="' + url + 'collections" target=_blank>' + num_raters + '</a>' +
+                    ' from <a href="' + url + '" target=_blank>Douban</a></span>'
                 );
+                review_bar.insertBefore(douban_item, review_bar.firstChild);
             }
         });
     }
