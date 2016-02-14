@@ -1,13 +1,15 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.2.5
+// @version      0.2.6
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
 // @match        *://movie.douban.com/subject/*
 // @match        http://www.imdb.com/title/tt*
 // @grant        GM_xmlhttpRequest
+// @connect      app.imdb.com
+// @connect      api.douban.com
 // ==/UserScript==
 
 function getJSON(url, callback) {
