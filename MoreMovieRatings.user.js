@@ -183,12 +183,16 @@ function isEmpty(s) {
                 var douban_item = document.createElement('div');
                 douban_item.setAttribute('class', 'titleReviewBarItem');
                 douban_item.insertAdjacentHTML('beforeend',
-                    '<div style="background: url(http://ia.media-imdb.com/images/G/01/imdb/images/title/title_overview_sprite-2406345693._V_.png) no-repeat; background-position: -15px -124px; line-height: 14px; padding: 0 0 0 34px; font-size: 10px"><div class="ratingValue">' +
+                    '<div style="background: url(http://ia.media-imdb.com/images/G/01/imdb/images/title/title_overview_sprite-2406345693._V_.png) no-repeat; background-position: -15px -124px; line-height: 14px; padding-left: 34px; font-size: 10px"><div class="ratingValue">' +
                     '<strong><span style="font-size: 22px; font-weight: normal; font-family: Arial">' + data.rating.average + '</span></strong>' + 
                     '<span>/</span><span style="color: #6b6b6b">' + data.rating.max + '</span></div>' +
                     '<span><a href="' + url + 'collections" target=_blank>' + num_raters + '</a>' +
                     ' from <a href="' + url + '" target=_blank>Douban</a></span>'
                 );
+                // Style fix if titleReviewBar can't fit in one line
+                if (document.querySelectorAll('div.titleReviewBarItem').length >= 3)
+                    if (document.querySelector('.minPosterWithPlotSummaryHeight'))
+                        douban_item.style.marginBottom = '8px';
                 review_bar.insertBefore(douban_item, review_bar.firstChild);
             }
         });
