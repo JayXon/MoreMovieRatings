@@ -31,9 +31,10 @@ function isEmpty(s) {
 }
 
 (function () {
+    var id = 0;
     var host = location.hostname;
     if (host === 'movie.douban.com') {
-        var id = document.querySelector('#info a[href^="http://www.imdb.com/"]');
+        id = document.querySelector('#info a[href^="http://www.imdb.com/"]');
         if (!id)
             return;
         id = id.textContent;
@@ -141,11 +142,12 @@ function isEmpty(s) {
         });
     } else if (host === 'www.imdb.com') {
         var starbox = document.querySelector('.star-box-details');
+        var new_ui = false;
         if (document.querySelector('div.imdbRating'))
-            var new_ui = true;
+            new_ui = true;
         if (!starbox && !new_ui)
             return;
-        var id = location.href.match(/tt\d+/);
+        id = location.href.match(/tt\d+/);
         if (!id)
             return;
         GM_xmlhttpRequest({
@@ -184,7 +186,7 @@ function isEmpty(s) {
                 douban_item.setAttribute('class', 'titleReviewBarItem');
                 douban_item.insertAdjacentHTML('beforeend',
                     '<div style="background: url(http://ia.media-imdb.com/images/G/01/imdb/images/title/title_overview_sprite-2406345693._V_.png) no-repeat; background-position: -15px -124px; line-height: 14px; padding-left: 34px; font-size: 10px"><div class="ratingValue">' +
-                    '<strong><span style="font-size: 22px; font-weight: normal; font-family: Arial">' + data.rating.average + '</span></strong>' + 
+                    '<strong><span style="font-size: 22px; font-weight: normal; font-family: Arial">' + data.rating.average + '</span></strong>' +
                     '<span>/</span><span style="color: #6b6b6b">' + data.rating.max + '</span></div>' +
                     '<span><a href="' + url + 'collections" target=_blank>' + num_raters + '</a>' +
                     ' from <a href="' + url + '" target=_blank>Douban</a></span>'
