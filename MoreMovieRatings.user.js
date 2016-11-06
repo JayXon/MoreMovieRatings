@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.2.6
+// @version      0.2.7
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -123,7 +123,7 @@ function isEmpty(s) {
             };
             if (!isEmpty(data.tomatoMeter)) {
                 ratings.insertAdjacentHTML('beforeend',
-                    "<span style='background: url(data:image/png;base64," + tomatoimg[data.tomatoImage] + ") no-repeat; background-size: cover; width: 18px; height: 18px; margin: 0 2px; vertical-align: middle; display: inline-block'></span>" +
+                    "<a href=" + data.tomatoURL + " target=_blank style='background:none'><span style='background: url(data:image/png;base64," + tomatoimg[data.tomatoImage] + ") no-repeat; background-size: cover; width: 18px; height: 18px; margin: 0 2px; vertical-align: middle; display: inline-block'></span></a>" +
                     "<span style='vertical-align: middle; display: inline-block; line-height: 18px'>" + data.tomatoMeter + "%</span>"
                 );
             }
@@ -135,7 +135,7 @@ function isEmpty(s) {
                     userimage = "spilled";
 
                 ratings.insertAdjacentHTML('beforeend',
-                    "<span style='background: url(data:image/png;base64," + tomatoimg[userimage] + ") no-repeat; background-size: cover; width: 18px; height: 18px; margin: 0 2px; vertical-align: middle; display: inline-block'></span>" +
+                    "<a href=" + data.tomatoURL + " target=_blank style='background:none'><span style='background: url(data:image/png;base64," + tomatoimg[userimage] + ") no-repeat; background-size: cover; width: 18px; height: 18px; margin: 0 2px; vertical-align: middle; display: inline-block'></span></a>" +
                     "<span style='vertical-align: middle; display: inline-block; line-height: 18px'>" + data.tomatoUserMeter + "%</span>"
                 );
             }
