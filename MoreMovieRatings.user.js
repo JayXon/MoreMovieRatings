@@ -1,16 +1,33 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.3.1
+// @version      0.3.2
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
 // @match        *://movie.douban.com/subject/*
 // @match        http://www.imdb.com/title/tt*
 // @grant        GM_xmlhttpRequest
-// @connect      app.imdb.com
 // @connect      api.douban.com
+// @connect      app.imdb.com
+// @connect      www.omdbapi.com
 // ==/UserScript==
+
+function getJSON_GM(url, callback) {
+    GM_xmlhttpRequest({
+        method: 'GET',
+        url: url,
+        onload: function(response) {
+            if (response.status >= 200 && response.status < 400)
+                callback(JSON.parse(response.responseText));
+            else
+                console.log('Error getting ' + url + ': ' + response.statusText);
+        },
+        onerror: function(response) {
+            console.log('Error during GM_xmlhttpRequest to ' + url + ': ' + response.statusText);
+        }
+    });
+}
 
 function getJSON(url, callback) {
     var request = new XMLHttpRequest();
@@ -22,6 +39,11 @@ function getJSON(url, callback) {
         else
             console.log('Error getting ' + url + ': ' + this.statusText);
     };
+
+    request.onerror = function () {
+        console.log('Error during XMLHttpRequest to ' + url + 'try again with GM_xmlhttpRequest.');
+        getJSON_GM(url, callback);
+    }
 
     request.send();
 }
@@ -53,32 +75,27 @@ function isEmpty(s) {
             rating_wrap.className = 'rating_wrap';
             sectl.appendChild(rating_wrap);
 
-            GM_xmlhttpRequest({
-                method: 'GET',
-                url: 'https://api.douban.com/v2/movie/' + douban_id,
-                onload: function (response) {
-                    var data = JSON.parse(response.responseText);
-                    if (isEmpty(data.rating) || isEmpty(data.rating.average))
-                        return;
-                    rating_wrap.insertAdjacentHTML('beforeend',
-                        '<div class="rating_logo">豆瓣评分</div>' +
-                        '<div class="rating_self clearfix">' +
-                            '<strong class="ll rating_num">' + data.rating.average + '</strong>' +
-                            '<div class="rating_right">' +
-                                '<div class="ll bigstar' + 5 * Math.round(data.rating.average) + '"></div>' +
-                                '<div style="clear: both" class="rating_sum"><a href=https://movie.douban.com/subject/' + douban_id + '/collections target=_blank>' + data.rating.numRaters + '人评价</a></div>' +
-                            '</div>' +
-                        '</div>'
-                    );
-                    rating_wrap.title = '此条目的豆瓣评分已被和谐，MoreMovieRatings恢复了部分评分，点击评价人数可查看详细评分分布';
-                }
+            getJSON_GM('https://api.douban.com/v2/movie/' + douban_id, function (data) {
+                if (isEmpty(data.rating) || isEmpty(data.rating.average))
+                    return;
+                rating_wrap.insertAdjacentHTML('beforeend',
+                    '<div class="rating_logo">豆瓣评分</div>' +
+                    '<div class="rating_self clearfix">' +
+                        '<strong class="ll rating_num">' + data.rating.average + '</strong>' +
+                        '<div class="rating_right">' +
+                            '<div class="ll bigstar' + 5 * Math.round(data.rating.average) + '"></div>' +
+                            '<div style="clear: both" class="rating_sum"><a href=https://movie.douban.com/subject/' + douban_id + '/collections target=_blank>' + data.rating.numRaters + '人评价</a></div>' +
+                        '</div>' +
+                    '</div>'
+                );
+                rating_wrap.title = '此条目的豆瓣评分已被和谐，MoreMovieRatings恢复了部分评分，点击评价人数可查看详细评分分布';
             });
         }
         id = document.querySelector('#info a[href^="http://www.imdb.com/"]');
         if (!id)
             return;
         id = id.textContent;
-        getJSON('https://www.omdbapi.com/?tomatoes=true&i=' + id, function (data) {
+        getJSON_GM('http://www.omdbapi.com/?tomatoes=true&i=' + id, function (data) {
             if (isEmpty(data.imdbRating) && isEmpty(data.Metascore) && isEmpty(data.tomatoMeter) && isEmpty(data.tomatoUserMeter))
                 return;
             var ratings = document.createElement('div');
@@ -102,33 +119,29 @@ function isEmpty(s) {
                 );
                 // Check for IMDb Top 250
                 if (data.imdbRating >= 8) {
-                    GM_xmlhttpRequest({
-                        method: 'GET',
-                        url: 'https://app.imdb.com/chart/top',
-                        onload: function (top) {
-                            var list = JSON.parse(top.responseText).data.list.list;
-                            var number = function () {
-                                for (var i = 0; i < list.length; i++)
-                                    if (list[i].tconst === id)
-                                        return i + 1;
-                                return null;
-                            } ();
-                            if (!number)
-                                return;
-                            // inject css if needed
-                            if (document.getElementsByClassName('top250').length === 0) {
-                                var style = document.createElement('style');
-                                style.innerHTML = '.top250{background:url(https://s.doubanio.com/f/movie/f8a7b5e23d00edee6b42c6424989ce6683aa2fff/pics/movie/top250_bg.png) no-repeat;width:150px;font:12px Helvetica,Arial,sans-serif;margin:5px 0;color:#744900}.top250 span{display:inline-block;text-align:center;height:18px;line-height:18px}.top250 a,.top250 a:link,.top250 a:hover,.top250 a:active,.top250 a:visited{color:#744900;text-decoration:none;background:none}.top250-no{width:34%}.top250-link{width:66%}';
-                                document.head.appendChild(style);
-                            }
-                            var after = document.getElementById('dale_movie_subject_top_icon');
-                            if (!after)
-                                after = document.querySelector('h1');
-                            after.insertAdjacentHTML('beforebegin', '<div class="top250"><span class="top250-no">No.' + number + '</span><span class="top250-link"><a href="http://www.imdb.com/chart/top">IMDb Top 250</a></span></div>');
-                            [].forEach.call(document.getElementsByClassName('top250'), function (e) {
-                                e.style.display = 'inline-block';
-                            });
+                    getJSON_GM('https://app.imdb.com/chart/top', function (top_data) {
+                        var list = top_data.data.list.list;
+                        var number = function () {
+                            for (var i = 0; i < list.length; i++)
+                                if (list[i].tconst === id)
+                                    return i + 1;
+                            return null;
+                        }();
+                        if (!number)
+                            return;
+                        // inject css if needed
+                        if (document.getElementsByClassName('top250').length === 0) {
+                            var style = document.createElement('style');
+                            style.innerHTML = '.top250{background:url(https://s.doubanio.com/f/movie/f8a7b5e23d00edee6b42c6424989ce6683aa2fff/pics/movie/top250_bg.png) no-repeat;width:150px;font:12px Helvetica,Arial,sans-serif;margin:5px 0;color:#744900}.top250 span{display:inline-block;text-align:center;height:18px;line-height:18px}.top250 a,.top250 a:link,.top250 a:hover,.top250 a:active,.top250 a:visited{color:#744900;text-decoration:none;background:none}.top250-no{width:34%}.top250-link{width:66%}';
+                            document.head.appendChild(style);
                         }
+                        var after = document.getElementById('dale_movie_subject_top_icon');
+                        if (!after)
+                            after = document.querySelector('h1');
+                        after.insertAdjacentHTML('beforebegin', '<div class="top250"><span class="top250-no">No.' + number + '</span><span class="top250-link"><a href="http://www.imdb.com/chart/top">IMDb Top 250</a></span></div>');
+                        [].forEach.call(document.getElementsByClassName('top250'), function (e) {
+                            e.style.display = 'inline-block';
+                        });
                     });
                 }
             }
@@ -192,53 +205,48 @@ function isEmpty(s) {
         id = location.href.match(/tt\d+/);
         if (!id)
             return;
-        GM_xmlhttpRequest({
-            method: 'GET',
-            url: 'https://api.douban.com/v2/movie/imdb/' + id,
-            onload: function (response) {
-                var data = JSON.parse(response.responseText);
-                if (isEmpty(data.alt))
-                    return;
-                var url = data.alt.replace('/movie/', '/subject/') + '/';
-                var num_raters = data.rating.numRaters.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
-                if (!new_ui) {
-                    starbox.insertAdjacentHTML('beforeend',
-                        '<br><a href="' + url + '" target=_blank>Douban</a>: ' +
-                        '<strong><span itemprop=ratingValue>' + data.rating.average + '</span></strong>' +
-                        '<span class=mellow>/<span itemprop=bestRating>' + data.rating.max + '</span></span>' +
-                        ' from <a href="' + url + 'collections" target=_blank><span itemprop=ratingCount>' + num_raters + '</span> users</a>'
-                    );
-                    return;
-                }
-                var review_bar = document.querySelector('div.titleReviewBar');
-                if (!review_bar) {
-                    review_bar = document.createElement('div');
-                    review_bar.setAttribute('class', 'titleReviewBar');
-                    var wrapper = document.querySelector('div.plot_summary_wrapper');
-                    if (!wrapper)
-                        return;
-                    wrapper.appendChild(review_bar);
-                } else {
-                    var divider = document.createElement('div');
-                    divider.setAttribute('class', 'divider');
-                    review_bar.insertBefore(divider, review_bar.firstChild);
-                }
-                review_bar.style.display = 'inline-table';
-                var douban_item = document.createElement('div');
-                douban_item.setAttribute('class', 'titleReviewBarItem');
-                douban_item.insertAdjacentHTML('beforeend',
-                    '<div style="background: url(http://ia.media-imdb.com/images/G/01/imdb/images/title/title_overview_sprite-2406345693._V_.png) no-repeat; background-position: -15px -124px; line-height: 14px; padding-left: 34px; font-size: 10px"><div class="ratingValue">' +
-                    '<strong><span style="font-size: 22px; font-weight: normal; font-family: Arial">' + data.rating.average + '</span></strong>' +
-                    '<span>/</span><span style="color: #6b6b6b">' + data.rating.max + '</span></div>' +
-                    '<span><a href="' + url + 'collections" target=_blank>' + num_raters + '</a>' +
-                    ' from <a href="' + url + '" target=_blank>Douban</a></span>'
+        getJSON_GM('https://api.douban.com/v2/movie/imdb/' + id, function (data) {
+            if (isEmpty(data.alt))
+                return;
+            var url = data.alt.replace('/movie/', '/subject/') + '/';
+            var num_raters = data.rating.numRaters.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+            if (!new_ui) {
+                starbox.insertAdjacentHTML('beforeend',
+                    '<br><a href="' + url + '" target=_blank>Douban</a>: ' +
+                    '<strong><span itemprop=ratingValue>' + data.rating.average + '</span></strong>' +
+                    '<span class=mellow>/<span itemprop=bestRating>' + data.rating.max + '</span></span>' +
+                    ' from <a href="' + url + 'collections" target=_blank><span itemprop=ratingCount>' + num_raters + '</span> users</a>'
                 );
-                // Style fix if titleReviewBar can't fit in one line
-                if (document.querySelectorAll('div.titleReviewBarItem').length >= 3)
-                    if (document.querySelector('.minPosterWithPlotSummaryHeight'))
-                        douban_item.style.marginBottom = '8px';
-                review_bar.insertBefore(douban_item, review_bar.firstChild);
+                return;
             }
+            var review_bar = document.querySelector('div.titleReviewBar');
+            if (!review_bar) {
+                review_bar = document.createElement('div');
+                review_bar.setAttribute('class', 'titleReviewBar');
+                var wrapper = document.querySelector('div.plot_summary_wrapper');
+                if (!wrapper)
+                    return;
+                wrapper.appendChild(review_bar);
+            } else {
+                var divider = document.createElement('div');
+                divider.setAttribute('class', 'divider');
+                review_bar.insertBefore(divider, review_bar.firstChild);
+            }
+            review_bar.style.display = 'inline-table';
+            var douban_item = document.createElement('div');
+            douban_item.setAttribute('class', 'titleReviewBarItem');
+            douban_item.insertAdjacentHTML('beforeend',
+                '<div style="background: url(http://ia.media-imdb.com/images/G/01/imdb/images/title/title_overview_sprite-2406345693._V_.png) no-repeat; background-position: -15px -124px; line-height: 14px; padding-left: 34px; font-size: 10px"><div class="ratingValue">' +
+                '<strong><span style="font-size: 22px; font-weight: normal; font-family: Arial">' + data.rating.average + '</span></strong>' +
+                '<span>/</span><span style="color: #6b6b6b">' + data.rating.max + '</span></div>' +
+                '<span><a href="' + url + 'collections" target=_blank>' + num_raters + '</a>' +
+                ' from <a href="' + url + '" target=_blank>Douban</a></span>'
+            );
+            // Style fix if titleReviewBar can't fit in one line
+            if (document.querySelectorAll('div.titleReviewBarItem').length >= 3)
+                if (document.querySelector('.minPosterWithPlotSummaryHeight'))
+                    douban_item.style.marginBottom = '8px';
+            review_bar.insertBefore(douban_item, review_bar.firstChild);
         });
     }
 })();
