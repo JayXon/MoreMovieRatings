@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.3.2
+// @version      0.3.3
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -43,13 +43,28 @@ function getJSON(url, callback) {
     request.onerror = function () {
         console.log('Error during XMLHttpRequest to ' + url + 'try again with GM_xmlhttpRequest.');
         getJSON_GM(url, callback);
-    }
+    };
 
     request.send();
 }
 
 function isEmpty(s) {
     return !s || s === 'N/A';
+}
+
+function insertDoubanRatingDiv(parent, title, rating, link, num_raters) {
+    var star = (5 * Math.round(rating)).toString();
+    if (star.length == 1)
+        star = '0' + star;
+    parent.insertAdjacentHTML('beforeend',
+        '<div class="rating_logo">'+title+'</div>' +
+        '<div class="rating_self clearfix">' +
+            '<strong class="ll rating_num">' + rating + '</strong>' +
+            '<div class="rating_right">' +
+                '<div class="ll bigstar' + star + '"></div>' +
+                '<div style="clear: both" class="rating_sum"><a href=' + link + ' target=_blank>' + num_raters.toString().replace(/,/g, '') + '人评价</a></div>' +
+            '</div>' +
+        '</div>');
 }
 
 (function () {
@@ -78,16 +93,7 @@ function isEmpty(s) {
             getJSON_GM('https://api.douban.com/v2/movie/' + douban_id, function (data) {
                 if (isEmpty(data.rating) || isEmpty(data.rating.average))
                     return;
-                rating_wrap.insertAdjacentHTML('beforeend',
-                    '<div class="rating_logo">豆瓣评分</div>' +
-                    '<div class="rating_self clearfix">' +
-                        '<strong class="ll rating_num">' + data.rating.average + '</strong>' +
-                        '<div class="rating_right">' +
-                            '<div class="ll bigstar' + 5 * Math.round(data.rating.average) + '"></div>' +
-                            '<div style="clear: both" class="rating_sum"><a href=https://movie.douban.com/subject/' + douban_id + '/collections target=_blank>' + data.rating.numRaters + '人评价</a></div>' +
-                        '</div>' +
-                    '</div>'
-                );
+                insertDoubanRatingDiv(rating_wrap, '豆瓣评分', data.rating.average, 'https://movie.douban.com/subject/' + douban_id + '/collections', data.rating.numRaters);
                 rating_wrap.title = '此条目的豆瓣评分已被和谐，MoreMovieRatings恢复了部分评分，点击评价人数可查看详细评分分布';
             });
         }
@@ -107,16 +113,7 @@ function isEmpty(s) {
             sectl.insertBefore(ratings, rating_wrap.nextSibling);
             // IMDb
             if (!isEmpty(data.imdbRating)) {
-                ratings.insertAdjacentHTML('beforeend',
-                    '<div class="rating_logo">IMDb评分</div>' +
-                    '<div class="rating_self clearfix">' +
-                        '<strong class="ll rating_num">' + data.imdbRating + '</strong>' +
-                        '<div class="rating_right">' +
-                            '<div class="ll bigstar' + 5 * Math.round(data.imdbRating) + '"></div>' +
-                            '<div style="clear: both" class="rating_sum"><a href=http://www.imdb.com/title/' + id + '/ratings target=_blank>' + data.imdbVotes.replace(/,/g, '') + '人评价</a></div>' +
-                        '</div>' +
-                    '</div>'
-                );
+                insertDoubanRatingDiv(ratings, 'IMDb评分', data.imdbRating, 'http://www.imdb.com/title/' + id + '/ratings', data.imdbVotes);
                 // Check for IMDb Top 250
                 if (data.imdbRating >= 8) {
                     getJSON_GM('https://app.imdb.com/chart/top', function (top_data) {
