@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.3.3
+// @version      0.3.4
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -10,7 +10,6 @@
 // @grant        GM_xmlhttpRequest
 // @connect      api.douban.com
 // @connect      app.imdb.com
-// @connect      www.omdbapi.com
 // ==/UserScript==
 
 function getJSON_GM(url, callback) {
@@ -101,8 +100,9 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters) {
         if (!id)
             return;
         id = id.textContent;
-        getJSON_GM('http://www.omdbapi.com/?tomatoes=true&i=' + id, function (data) {
-            if (isEmpty(data.imdbRating) && isEmpty(data.Metascore) && isEmpty(data.tomatoMeter) && isEmpty(data.tomatoUserMeter))
+        getJSON_GM('http://app.imdb.com/title/maindetails?tconst=' + id, function (data) {
+            data = data.data;
+            if (isEmpty(data.rating) && isEmpty(data.Metascore) && isEmpty(data.tomatoMeter) && isEmpty(data.tomatoUserMeter))
                 return;
             var ratings = document.createElement('div');
             ratings.style.padding = '15px 0';
@@ -112,10 +112,10 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters) {
                 rating_wrap = document.querySelector('.rating_wrap');
             sectl.insertBefore(ratings, rating_wrap.nextSibling);
             // IMDb
-            if (!isEmpty(data.imdbRating)) {
-                insertDoubanRatingDiv(ratings, 'IMDb评分', data.imdbRating, 'http://www.imdb.com/title/' + id + '/ratings', data.imdbVotes);
+            if (!isEmpty(data.rating)) {
+                insertDoubanRatingDiv(ratings, 'IMDb评分', data.rating, 'http://www.imdb.com/title/' + id + '/ratings', data.num_votes);
                 // Check for IMDb Top 250
-                if (data.imdbRating >= 8) {
+                if (data.rating >= 8) {
                     getJSON_GM('https://app.imdb.com/chart/top', function (top_data) {
                         var list = top_data.data.list.list;
                         var number = function () {
