@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.4.0
+// @version      0.4.1
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -103,7 +103,9 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters) {
         if (!id)
             return;
         id = id.textContent;
-        getJSON('https://www.omdbapi.com/?tomatoes=true&apikey=40700ff1&i=' + id, function (data) {
+        var keys = ['40700ff1', '4ee790e0', 'd82cb888', '386234f9'];
+        var apikey = keys[Math.floor(Math.random() * keys.length)];
+        getJSON('https://www.omdbapi.com/?tomatoes=true&apikey=' + apikey + '&i=' + id, function (data) {
             if (isEmpty(data.imdbRating) && isEmpty(data.Metascore))
                 return;
             var ratings = document.createElement('div');
