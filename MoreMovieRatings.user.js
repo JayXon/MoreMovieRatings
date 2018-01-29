@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.4.1
+// @version      0.4.2
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -9,23 +9,29 @@
 // @match        http://www.imdb.com/title/tt*
 // @grant        GM_xmlhttpRequest
 // @connect      api.douban.com
-// @connect      app.imdb.com
+// @connect      m.imdb.com
 // @connect      www.omdbapi.com
 // ==/UserScript==
 
-function getJSON_GM(url, callback) {
+function getURL_GM(url, callback) {
     GM_xmlhttpRequest({
         method: 'GET',
         url: url,
         onload: function(response) {
             if (response.status >= 200 && response.status < 400)
-                callback(JSON.parse(response.responseText));
+                callback(response.responseText);
             else
                 console.log('Error getting ' + url + ': ' + response.statusText);
         },
         onerror: function(response) {
             console.log('Error during GM_xmlhttpRequest to ' + url + ': ' + response.statusText);
         }
+    });
+}
+
+function getJSON_GM(url, callback) {
+    getURL_GM(url, function(data) {
+        callback(JSON.parse(data));
     });
 }
 
@@ -120,15 +126,10 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters) {
                 insertDoubanRatingDiv(ratings, 'IMDb评分', data.imdbRating, 'http://www.imdb.com/title/' + id + '/ratings', data.imdbVotes);
                 // Check for IMDb Top 250
                 if (data.imdbRating >= 8) {
-                    getJSON_GM('https://app.imdb.com/chart/top', function (top_data) {
-                        var list = top_data.data.list.list;
-                        var number = function () {
-                            for (var i = 0; i < list.length; i++)
-                                if (list[i].tconst === id)
-                                    return i + 1;
-                            return null;
-                        }();
-                        if (!number)
+                    getURL_GM('https://m.imdb.com/chart/top', function (top_html) {
+                        var list = top_html.match(/data-tconst="(tt\d{7})"/g);
+                        var number = list.indexOf('data-tconst="' + id + '"') + 1;
+                        if (number < 1 || number > 250)
                             return;
                         // inject css if needed
                         if (document.getElementsByClassName('top250').length === 0) {
