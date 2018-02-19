@@ -102,7 +102,7 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters) {
                 if (isEmpty(data.rating) || isEmpty(data.rating.average))
                     return;
                 insertDoubanRatingDiv(rating_wrap, '豆瓣评分', data.rating.average, 'https://movie.douban.com/subject/' + douban_id + '/collections', data.rating.numRaters);
-                rating_wrap.title = '此条目的豆瓣评分已被和谐，MoreMovieRatings恢复了部分评分，点击评价人数可查看详细评分分布';
+                rating_wrap.title = '此条目的豆瓣评分已被和谐，MoreMovieRatings恢复了部分评分';
             });
         }
         id = document.querySelector('#info a[href^="http://www.imdb.com/"]');
