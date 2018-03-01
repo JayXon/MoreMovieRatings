@@ -5,8 +5,8 @@ Show IMDb ratings on Douban, and vice versa
 
 * IMDb ratings and number of voters
 * IMDb Top 250
-* ~~Rotten Tomatoes meter and audience score~~
-* ~~Metascore~~
+* Rotten Tomatoes
+* Metascore
 
 ![Douban Screenshot](https://github.com/JayXon/MoreMovieRatings/raw/master/douban.png)
 
