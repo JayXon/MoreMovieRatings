@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.4.2
+// @version      0.4.3
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
 // @match        *://movie.douban.com/subject/*
-// @match        http://www.imdb.com/title/tt*
+// @match        *://www.imdb.com/title/tt*
 // @grant        GM_xmlhttpRequest
 // @connect      api.douban.com
 // @connect      m.imdb.com
@@ -251,7 +251,7 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters) {
             var douban_item = document.createElement('div');
             douban_item.setAttribute('class', 'titleReviewBarItem');
             douban_item.insertAdjacentHTML('beforeend',
-                '<div style="background: url(http://ia.media-imdb.com/images/G/01/imdb/images/title/title_overview_sprite-2406345693._V_.png) no-repeat; background-position: -15px -124px; line-height: 14px; padding-left: 34px; font-size: 10px"><div class="ratingValue">' +
+                '<div style="background: url(https://images-na.ssl-images-amazon.com/images/G/01/imdb/images/title/title_overview_sprite-1705639977._V_.png) no-repeat; background-position: -15px -124px; line-height: 14px; padding-left: 34px; font-size: 10px"><div class="ratingValue">' +
                 '<strong><span style="font-size: 22px; font-weight: normal; font-family: Arial">' + data.rating.average + '</span></strong>' +
                 '<span>/</span><span style="color: #6b6b6b">' + data.rating.max + '</span></div>' +
                 '<span><a href="' + url + 'collections" target=_blank>' + num_raters + '</a>' +
