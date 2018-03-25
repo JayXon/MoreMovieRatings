@@ -7,6 +7,7 @@ Show IMDb ratings on Douban, and vice versa
 * IMDb Top 250
 * Rotten Tomatoes
 * Metascore
+* MPAA Rating
 
 ![Douban Screenshot](https://github.com/JayXon/MoreMovieRatings/raw/master/douban.png)
 
