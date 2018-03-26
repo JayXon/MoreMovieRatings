@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.4.4
+// @version      0.4.5
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -103,6 +103,9 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters) {
                     return;
                 insertDoubanRatingDiv(rating_wrap, '豆瓣评分', data.rating.average, 'https://movie.douban.com/subject/' + douban_id + '/collections', data.rating.numRaters);
                 rating_wrap.title = '此条目的豆瓣评分已被和谐，MoreMovieRatings恢复了部分评分';
+                // Move it down to leave space for fixed rating.
+                if (document.querySelector('#movie-fixed-rating-iframe'))
+                    sectl.style = 'margin-top:96px';
             });
         }
         id = document.querySelector('#info a[href^="http://www.imdb.com/"]');
