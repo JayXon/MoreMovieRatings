@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.4.5
+// @version      0.5.0
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -21,7 +21,7 @@ function getURL_GM(url, callback) {
             if (response.status >= 200 && response.status < 400)
                 callback(response.responseText);
             else
-                console.log('Error getting ' + url + ': ' + response.statusText);
+                console.log('Error getting ' + url + ' (' + this.status + ' ' + this.statusText + '): ' + this.responseText);
         },
         onerror: function(response) {
             console.log('Error during GM_xmlhttpRequest to ' + url + ': ' + response.statusText);
@@ -35,23 +35,28 @@ function getJSON_GM(url, callback) {
     });
 }
 
-function getJSON(url, callback) {
-    var request = new XMLHttpRequest();
-    request.open('GET', url);
+function getJSON(response) {
+  if (response.status >= 200 && response.status < 400)
+    return response.json();
+  return Promise.reject(new Error(response.status + response.statusText));
+}
 
-    request.onload = function () {
-        if (this.status >= 200 && this.status < 400)
-            callback(JSON.parse(this.responseText));
-        else
-            console.log('Error getting ' + url + ': ' + this.statusText);
-    };
-
-    request.onerror = function () {
-        console.log('Error during XMLHttpRequest to ' + url + 'try again with GM_xmlhttpRequest.');
-        getJSON_GM(url, callback);
-    };
-
-    request.send();
+function getIMDbInfo(id, callback) {
+  let keys = ['40700ff1', '4ee790e0', 'd82cb888', '386234f9'];
+  let apikey = keys[Math.floor(Math.random() * keys.length)];
+  let url = 'https://www.omdbapi.com/?tomatoes=true&apikey=' + apikey + '&i=' + id;
+  fetch(url).then(getJSON).then(callback).catch(error => {
+    console.error('Error fetching ', url, ': ', error);
+    url = 'https://theimdbapi.org/api/movie?movie_id=' + id;
+    fetch(url)
+        .then(getJSON)
+        .then(data => callback({
+                imdbRating: data.rating,
+                imdbVotes: data.rating_count,
+                Rated: data.content_rating
+              }))
+        .catch(error => console.error('Error fetching ', url, ': ', error));
+  });
 }
 
 function isEmpty(s) {
@@ -112,9 +117,7 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters) {
         if (!id)
             return;
         id = id.textContent;
-        var keys = ['40700ff1', '4ee790e0', 'd82cb888', '386234f9'];
-        var apikey = keys[Math.floor(Math.random() * keys.length)];
-        getJSON('https://www.omdbapi.com/?tomatoes=true&apikey=' + apikey + '&i=' + id, function (data) {
+        getIMDbInfo(id, function (data) {
             if (isEmpty(data.imdbRating) && isEmpty(data.Metascore))
                 return;
             var ratings = document.createElement('div');
@@ -215,9 +218,12 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters) {
 
             // MPAA Rating
             if (!isEmpty(data.Rated)) {
-                var info = document.querySelector('#info');
-                if (info)
+                let info = document.querySelector('#info');
+                if (info) {
+                    if (info.lastChild.previousSibling.nodeName != 'BR')
+                        info.insertAdjacentHTML('beforeend', '<br>');
                     info.insertAdjacentHTML('beforeend', '<span class="pl">MPAA评级:</span> ' + data.Rated + '<br>');
+                }
             }
         });
     } else if (host === 'www.imdb.com') {
