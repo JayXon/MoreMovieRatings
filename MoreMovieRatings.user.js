@@ -1,38 +1,40 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.5.0
+// @version      0.5.1
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
 // @match        *://movie.douban.com/subject/*
 // @match        *://www.imdb.com/title/tt*
-// @grant        GM_xmlhttpRequest
+// @grant        GM.xmlHttpRequest
 // @connect      api.douban.com
 // @connect      m.imdb.com
 // @connect      www.omdbapi.com
 // ==/UserScript==
 
 function getURL_GM(url, callback) {
-    GM_xmlhttpRequest({
-        method: 'GET',
-        url: url,
-        onload: function(response) {
-            if (response.status >= 200 && response.status < 400)
-                callback(response.responseText);
-            else
-                console.log('Error getting ' + url + ' (' + this.status + ' ' + this.statusText + '): ' + this.responseText);
-        },
-        onerror: function(response) {
-            console.log('Error during GM_xmlhttpRequest to ' + url + ': ' + response.statusText);
-        }
-    });
+  GM.xmlHttpRequest({
+    method: 'GET',
+    url: url,
+    onload: function(response) {
+      if (response.status >= 200 && response.status < 400)
+        callback(response.responseText);
+      else
+        console.log(
+            'Error getting ' + url + ' (' + this.status + ' ' + this.statusText +
+            '): ' + this.responseText);
+    },
+    onerror: function(response) {
+      console.log('Error during GM.xmlHttpRequest to ' + url + ': ' + response.statusText);
+    }
+  });
 }
 
 function getJSON_GM(url, callback) {
-    getURL_GM(url, function(data) {
-        callback(JSON.parse(data));
-    });
+  getURL_GM(url, function(data) {
+    callback(JSON.parse(data));
+  });
 }
 
 function getJSON(response) {
@@ -45,18 +47,21 @@ function getIMDbInfo(id, callback) {
   let keys = ['40700ff1', '4ee790e0', 'd82cb888', '386234f9'];
   let apikey = keys[Math.floor(Math.random() * keys.length)];
   let url = 'https://www.omdbapi.com/?tomatoes=true&apikey=' + apikey + '&i=' + id;
-  fetch(url).then(getJSON).then(callback).catch(error => {
-    console.error('Error fetching ', url, ': ', error);
-    url = 'https://theimdbapi.org/api/movie?movie_id=' + id;
-    fetch(url)
-        .then(getJSON)
-        .then(data => callback({
-                imdbRating: data.rating,
-                imdbVotes: data.rating_count,
-                Rated: data.content_rating
-              }))
-        .catch(error => console.error('Error fetching ', url, ': ', error));
-  });
+  fetch(url)
+      .then(getJSON)
+      .catch(error => {
+        console.error('Error fetching ', url, ': ', error);
+        url = 'https://theimdbapi.org/api/movie?movie_id=' + id;
+        fetch(url)
+            .then(getJSON)
+            .then(data => callback({
+                    imdbRating: data.rating,
+                    imdbVotes: data.rating_count,
+                    Rated: data.content_rating
+                  }))
+            .catch(error => console.error('Error fetching ', url, ': ', error));
+      })
+      .then(callback);
 }
 
 function isEmpty(s) {
