@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.5.1
+// @version      0.5.2
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -44,23 +44,12 @@ function getJSON(response) {
 }
 
 function getIMDbInfo(id, callback) {
-  let keys = ['40700ff1', '4ee790e0', 'd82cb888', '386234f9', 'd58193b6'];
+  let keys = ['40700ff1', '4ee790e0', 'd82cb888', '386234f9', 'd58193b6', '15c0aa3f'];
   let apikey = keys[Math.floor(Math.random() * keys.length)];
   let url = 'https://www.omdbapi.com/?tomatoes=true&apikey=' + apikey + '&i=' + id;
   fetch(url)
       .then(getJSON)
-      .catch(error => {
-        console.error('Error fetching ', url, ': ', error);
-        url = 'https://theimdbapi.org/api/movie?movie_id=' + id;
-        fetch(url)
-            .then(getJSON)
-            .then(data => callback({
-                    imdbRating: data.rating,
-                    imdbVotes: data.rating_count,
-                    Rated: data.content_rating
-                  }))
-            .catch(error => console.error('Error fetching ', url, ': ', error));
-      })
+      .catch(error => console.error('Error fetching ', url, ': ', error))
       .then(callback);
 }
 
