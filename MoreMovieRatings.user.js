@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.5.3
+// @version      0.5.4
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -107,7 +107,7 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters) {
                     sectl.style = 'margin-top:96px';
             });
         }
-        id = document.querySelector('#info a[href^="http://www.imdb.com/"]');
+        id = document.querySelector('#info a[href*="://www.imdb.com/"]');
         if (!id)
             return;
         id = id.textContent;
@@ -123,7 +123,7 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters) {
             sectl.insertBefore(ratings, rating_wrap.nextSibling);
             // IMDb
             if (!isEmpty(data.imdbRating)) {
-                insertDoubanRatingDiv(ratings, 'IMDb评分', data.imdbRating, 'http://www.imdb.com/title/' + id + '/ratings', data.imdbVotes);
+                insertDoubanRatingDiv(ratings, 'IMDb评分', data.imdbRating, 'https://www.imdb.com/title/' + id + '/ratings', data.imdbVotes);
                 // Check for IMDb Top 250
                 if (data.imdbRating >= 8) {
                     getURL_GM('https://m.imdb.com/chart/top', function (top_html) {
@@ -140,7 +140,7 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters) {
                         var after = document.getElementById('dale_movie_subject_top_icon');
                         if (!after)
                             after = document.querySelector('h1');
-                        after.insertAdjacentHTML('beforebegin', '<div class="top250"><span class="top250-no">No.' + number + '</span><span class="top250-link"><a href="http://www.imdb.com/chart/top">IMDb Top 250</a></span></div>');
+                        after.insertAdjacentHTML('beforebegin', '<div class="top250"><span class="top250-no">No.' + number + '</span><span class="top250-link"><a href="https://www.imdb.com/chart/top">IMDb Top 250</a></span></div>');
                         [].forEach.call(document.getElementsByClassName('top250'), function (e) {
                             e.style.display = 'inline-block';
                         });
