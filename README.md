@@ -3,7 +3,7 @@ Show IMDb ratings on Douban, and vice versa
 
 ### Douban
 
-* IMDb ratings and number of voters
+* IMDb ratings, number of voters and histogram
 * IMDb Top 250
 * Rotten Tomatoes
 * Metascore
