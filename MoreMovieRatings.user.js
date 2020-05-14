@@ -153,7 +153,7 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters, histogra
             }
             // Move it down to leave space for fixed rating.
             if (document.querySelector('#movie-rating-iframe'))
-                sectl.style = 'margin-top:96px';
+                sectl.style.marginTop = '96px';
         }
         const id_element = document.querySelector('#info a[href*="://www.imdb.com/"]');
         if (!id_element)
@@ -174,6 +174,9 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters, histogra
             rating_wrap = document.querySelector('.rating_wrap');
         sectl.insertBefore(ratings, rating_wrap.nextSibling);
         ratings.className = 'rating_wrap clearbox';
+        // Reduce whitespace
+        sectl.style.marginBottom = '-154px';
+        document.querySelector('.rec-sec').style.width = '488px';
         // IMDb
         if (!isEmpty(data.imdbRating)) {
             insertDoubanRatingDiv(ratings, 'IMDb评分', data.imdbRating, `https://www.imdb.com/title/${id}/ratings`, data.imdbVotes, data.histogram);
@@ -222,8 +225,7 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters, histogra
             }
         }
         if (tomato_score) {
-            if (!isEmpty(data.Metascore))
-                ratings.insertAdjacentHTML('beforeend', '<br>');
+            ratings.insertAdjacentHTML('beforeend', '<br>');
 
             const tomatoimg = {
                 'certified': 'iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAEyElEQVR4AdWTY4DkSABGXyXpTqYxRk+PT2sLZ9u2bdu2bdvmeG27b8dWWkhSZxO/7sWo7xX53yP4C/yGGtx7M/f+20xWtivNE5mOBAGicp4zZ+4C53Pg3X8l0DVh3H+695GjDuLwxqjklsd8lBbaDN/Y+vZaP89FcaHDqDyn9dQbkxcBz/xtwaAC19CZz3jm1a4X+gfVOhcfH+G9SjejBqeonaMzYpDFgy96OHi3GMUBG78Oi2fw3lG3mwcAsT8VDP4m/FV97pd9GB/WGDS1KRQVSE4+IMxDs3OZEjTJVGwkMHJQikPPz+SW80z6TMGSma7lwNA/FBiaMFY+m9V307uanpUuOfmgKO9U6l+HR4lZKue9HKQs6HDqZm3oikN/WLAipHHZPX5KAjbnHh7htefFPcCZfI/Gzzh3d//NxaNj+hYtBg++4qG8THLkPjGqm7O5e3ohfQv6aGkQxNI34ooxK8nwwdANbIZtlGLUJjajh1sEjzHOGHXowE1A629a0Pt2Vuym9zRji/EpSgocKsocLvyigh7Nz4LVCTxzenAhMXYsYJdglHHlvWwV6MaMCl76OI0PanROODDCp2/LH1vxo2Byhb5Z9XPu2qNu9JHhl1xwdJgQmTxYE6AkIVmUpaFKgcsFAUUwfrrJ/CIXnjGCC8vX8dS7GmZEECxwGO6jFQj+QnDqlhlX335H8goFAaqksdbLxx/ks9faGHqGxsW7ZeCNSbRei/WjvJz2Qi+jVsWYm6XSMtTNTic30tCnMHyjFMl13h+zNX5cUEjHUnCkgHZB5u1+DvYluW+cQXxsBkWmxa5zTQY1WNwmFELFGsPXCEYOOIysj6MZfoacY2IlVaTb4TeDLEAIW0UCqToDxxaIPJWzvQauiAuJRqo4RSoe46DP+5kxwYcEpABUSHyShn52GGwBUe23gvqQtU5J6EgNFFNF1UDRBcKrIoJ+SElEdwzFLSiwYKMVMRQBErAERBQHY5WOXurQFib+G8H8hvgnyoCXL9bGsRokVliiNMdRZBy1O4qqqCTaTGhPIWLg9Fnca6cYprkwHQdHKuQuTRKIChbPEp/8RhBOOD33vas0dRZdUrzDhdvyxGMPc8TRx4G0KdtgI6ZOHE9HcwPX3HgTjz76KG9VVhOq+ozLH36IpfPn49EVojc4HHPErjQ3zO35jaB4WP7F9WPLi70rY8xpNJm9cAVjmsMYHi+azCXc20V1kyTUESPl7uHFV98jsMlwTDNBTTPsd9Il335vcATqpOBRwNE/CrICaUcUb2js3dJuo/TbrP3oCzq7ljKz3WL9nDcZ1OlQvtmevL8uwsKuJPH+TGa0xhk+qBB/YQXvrYvy8hM3EdjvEtpMSVZMEl7acefCytZLRGbAc9wxD41+tDeUojIkiX/cCgKMybnEpnei+DUc00IIkFIihIIQgmQq+e2zy+OGpETNMbC/mQRZBsVjM9huTx+rq8IIAN3jOmT/28c//1FlBDuRAkBLOM1OOBni7yBxlOy0LSxVQqZOsSLJlomFdU+v3kkD8Aa8g1r7QF3aRv/KvhoBQ4Bi/gG2Y5+lKNrx/lxPhdgukJbwGkMmHD+iDQD/oLxPfGWZ1wA6/Hc86d7di7fccJbb5R7N/56vAEDvDGwghbBBAAAAAElFTkSuQmCC',
