@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.6.0
+// @version      0.6.1
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -123,6 +123,15 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters, histogra
         </div>` + histogram_html);
 }
 
+function insertDoubanInfo(name, value) {
+    const info = document.querySelector('#info');
+    if (info) {
+        if (info.lastElementChild.nodeName != 'BR')
+            info.insertAdjacentHTML('beforeend', '<br>');
+        info.insertAdjacentHTML('beforeend', `<span class="pl">${name}:</span> ${value}<br>`);
+    }
+}
+
 (async () => {
     let host = location.hostname;
     if (host === 'movie.douban.com') {
@@ -175,7 +184,7 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters, histogra
         sectl.insertBefore(ratings, rating_wrap.nextSibling);
         ratings.className = 'rating_wrap clearbox';
         // Reduce whitespace
-        sectl.style.marginBottom = '-154px';
+        sectl.style.marginBottom = document.querySelector('.colbutt') ? '-136px': '-154px';
         document.querySelector('.rec-sec').style.width = '488px';
         // IMDb
         if (!isEmpty(data.imdbRating)) {
@@ -261,12 +270,12 @@ function insertDoubanRatingDiv(parent, title, rating, link, num_raters, histogra
 
         // MPAA Rating
         if (!isEmpty(data.Rated)) {
-            const info = document.querySelector('#info');
-            if (info) {
-                if (info.lastChild.previousSibling.nodeName != 'BR')
-                    info.insertAdjacentHTML('beforeend', '<br>');
-                info.insertAdjacentHTML('beforeend', `<span class="pl">MPAA评级:</span> ${data.Rated}<br>`);
-            }
+            insertDoubanInfo('MPAA评级', data.Rated);
+        }
+
+        // Box office
+        if (!isEmpty(data.BoxOffice)) {
+            insertDoubanInfo('票房', data.BoxOffice);
         }
     } else if (host === 'www.imdb.com') {
         const starbox = document.querySelector('.star-box-details');

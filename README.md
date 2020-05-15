@@ -8,6 +8,7 @@ Show IMDb ratings on Douban, and vice versa
 * Rotten Tomatoes
 * Metascore
 * MPAA Rating
+* Box Office
 
 ![Douban Screenshot](https://github.com/JayXon/MoreMovieRatings/raw/master/douban.png)
 
