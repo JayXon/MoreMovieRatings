@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.6.1
+// @version      0.6.2
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -155,7 +155,7 @@ function insertDoubanInfo(name, value) {
             sectl.appendChild(rating_wrap);
 
             const data = await getJSON_GM(`https://api.douban.com/v2/movie/${douban_id}?apikey=0df993c66c0c636e29ecbb5344252a4a`)
-            console.log(data);
+
             if (data && data.rating && !isEmpty(data.rating.average)) {
                 insertDoubanRatingDiv(rating_wrap, '豆瓣评分', data.rating.average, `https://movie.douban.com/subject/${douban_id}/collections`, data.rating.numRaters);
                 rating_wrap.title = '此条目的豆瓣评分已被和谐，MoreMovieRatings恢复了部分评分';
@@ -184,8 +184,10 @@ function insertDoubanInfo(name, value) {
         sectl.insertBefore(ratings, rating_wrap.nextSibling);
         ratings.className = 'rating_wrap clearbox';
         // Reduce whitespace
-        sectl.style.marginBottom = document.querySelector('.colbutt') ? '-136px': '-154px';
-        document.querySelector('.rec-sec').style.width = '488px';
+        sectl.style.marginBottom = document.querySelector('.colbutt') ? '-136px' : '-154px';
+        const rec_sec = document.querySelector('.rec-sec');
+        if (rec_sec)
+            rec_sec.style.width = '488px';
         // IMDb
         if (!isEmpty(data.imdbRating)) {
             insertDoubanRatingDiv(ratings, 'IMDb评分', data.imdbRating, `https://www.imdb.com/title/${id}/ratings`, data.imdbVotes, data.histogram);
