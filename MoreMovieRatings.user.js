@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.6.3
+// @version      0.6.4
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -9,6 +9,7 @@
 // @match        *://www.imdb.com/title/tt*
 // @grant        GM.xmlHttpRequest
 // @connect      api.douban.com
+// @connect      movie.douban.com
 // @connect      p.media-imdb.com
 // @connect      www.omdbapi.com
 // ==/UserScript==
@@ -85,6 +86,24 @@ async function getIMDbInfo(id) {
         }
     }
     return omdb_data;
+}
+
+async function getDoubanInfo(id) {
+    // TODO: Remove this API completely if it doesn't come back.
+    const data = await getJSON_GM(`https://api.douban.com/v2/movie/imdb/${id}?apikey=0df993c66c0c636e29ecbb5344252a4a`);
+    if (data) {
+        if (isEmpty(data.alt))
+            return;
+        const url = data.alt.replace('/movie/', '/subject/') + '/';
+        return { url, rating: data.rating };
+    }
+    // Fallback to search.
+    const search = await getJSON_GM(`https://movie.douban.com/j/subject_suggest?q=${id}`);
+    if (search && search.length > 0 && search[0].id) {
+        const abstract = await getJSON_GM(`https://movie.douban.com/j/subject_abstract?subject_id=${search[0].id}`);
+        const average = abstract && abstract.subject && abstract.subject.rate ? abstract.subject.rate : '?';
+        return { url: `https://movie.douban.com/subject/${search[0].id}/`, rating: { numRaters: '', max: 10, average } };
+    }
 }
 
 function isEmpty(s) {
@@ -283,29 +302,12 @@ function insertDoubanInfo(name, value) {
             insertDoubanInfo('票房', data.BoxOffice);
         }
     } else if (host === 'www.imdb.com') {
-        const starbox = document.querySelector('.star-box-details');
-        let new_ui = false;
-        if (document.querySelector('div.imdbRating'))
-            new_ui = true;
-        if (!starbox && !new_ui)
-            return;
         const id = location.href.match(/tt\d+/);
         if (!id)
             return;
-        const data = await getJSON_GM(`https://api.douban.com/v2/movie/imdb/${id}?apikey=0df993c66c0c636e29ecbb5344252a4a`);
-        if (!data || isEmpty(data.alt))
+        const data = await getDoubanInfo(id);
+        if (!data)
             return;
-        const url = data.alt.replace('/movie/', '/subject/') + '/';
-        const num_raters = data.rating.numRaters.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
-        if (!new_ui) {
-            starbox.insertAdjacentHTML('beforeend',
-                '<br><a href="' + url + '" target=_blank>Douban</a>: ' +
-                '<strong><span itemprop=ratingValue>' + data.rating.average + '</span></strong>' +
-                '<span class=mellow>/<span itemprop=bestRating>' + data.rating.max + '</span></span>' +
-                ' from <a href="' + url + 'collections" target=_blank><span itemprop=ratingCount>' + num_raters + '</span> users</a>'
-            );
-            return;
-        }
         let review_bar = document.querySelector('div.titleReviewBar');
         if (!review_bar) {
             review_bar = document.createElement('div');
@@ -322,12 +324,13 @@ function insertDoubanInfo(name, value) {
         review_bar.style.display = 'inline-table';
         const douban_item = document.createElement('div');
         douban_item.setAttribute('class', 'titleReviewBarItem');
+        const num_raters = data.rating.numRaters.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
         douban_item.insertAdjacentHTML('beforeend',
             '<div style="background: url(https://images-na.ssl-images-amazon.com/images/G/01/imdb/images/title/title_overview_sprite-1705639977._V_.png) no-repeat; background-position: -15px -124px; line-height: 14px; padding-left: 34px; font-size: 10px"><div class="ratingValue">' +
-            '<strong><span style="font-size: 22px; font-weight: normal; font-family: Arial">' + data.rating.average + '</span></strong>' +
-            '<span>/</span><span style="color: #6b6b6b">' + data.rating.max + '</span></div>' +
-            '<span><a href="' + url + 'collections" target=_blank>' + num_raters + '</a>' +
-            ' from <a href="' + url + '" target=_blank>Douban</a></span>'
+            `<strong><span style="font-size: 22px; font-weight: normal; font-family: Arial">${data.rating.average}</span></strong>` +
+            `<span>/</span><span style="color: #6b6b6b">${data.rating.max}</span></div>` +
+            `<span><a href="${data.url}collections" target=_blank>${num_raters}</a>` +
+            ` from <a href="${data.url}" target=_blank>Douban</a></span>`
         );
         // Style fix if titleReviewBar can't fit in one line
         if (document.querySelectorAll('div.titleReviewBarItem').length >= 3)
