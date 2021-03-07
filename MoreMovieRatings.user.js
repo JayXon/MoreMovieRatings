@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.6.4
+// @version      0.6.5
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -102,7 +102,11 @@ async function getDoubanInfo(id) {
     if (search && search.length > 0 && search[0].id) {
         const abstract = await getJSON_GM(`https://movie.douban.com/j/subject_abstract?subject_id=${search[0].id}`);
         const average = abstract && abstract.subject && abstract.subject.rate ? abstract.subject.rate : '?';
-        return { url: `https://movie.douban.com/subject/${search[0].id}/`, rating: { numRaters: '', max: 10, average } };
+        return {
+            url: `https://movie.douban.com/subject/${search[0].id}/`,
+            rating: { numRaters: '', max: 10, average },
+            title: search[0].title,
+        };
     }
 }
 
@@ -308,6 +312,21 @@ function insertDoubanInfo(name, value) {
         const data = await getDoubanInfo(id);
         if (!data)
             return;
+        let button_container = document.querySelector('div[class^=TitleBlock__ButtonContainer]');
+        if (button_container) {
+            const imdb_rating = button_container.firstElementChild;
+            let douban_rating = imdb_rating.cloneNode(true);
+            douban_rating.firstElementChild.textContent = 'Douban RATING';
+            douban_rating.children[1].href = data.url;
+            douban_rating.children[1].target = '_blank';
+            douban_rating.children[1].title = data.title;
+            douban_rating.querySelector('span[class^=AggregateRatingButton__RatingScore]').textContent = data.rating.average;
+            douban_rating.querySelector('div[class^=AggregateRatingButton__TotalRatingAmount]').textContent = data.rating.numRaters;
+            imdb_rating.insertAdjacentElement('afterend', douban_rating);
+            return;
+        }
+
+        // old UI, to be removed
         let review_bar = document.querySelector('div.titleReviewBar');
         if (!review_bar) {
             review_bar = document.createElement('div');
