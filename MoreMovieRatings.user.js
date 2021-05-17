@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.6.5
+// @version      0.6.6
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -188,9 +188,20 @@ function insertDoubanInfo(name, value) {
                 sectl.style.marginTop = '96px';
         }
         const id_element = document.querySelector('#info a[href*="://www.imdb.com/"]');
-        if (!id_element)
-            return;
-        const id = id_element.textContent;
+        let id;
+        if (id_element) {
+            id = id_element.textContent;
+        } else {
+            // Douban stops linking to IMDb, so find the text node instead and retore the link.
+            const text_node = [...document.querySelectorAll('#info > span.pl')].find(s => s.innerText == 'IMDb:').nextSibling;
+            id = text_node.textContent.trim();
+            let a = document.createElement('a');
+            a.href = 'https://www.imdb.com/title/' + id;
+            a.target = '_blank';
+            a.appendChild(document.createTextNode(id));
+            text_node.replaceWith(a);
+            a.insertAdjacentText('beforebegin', ' ');
+        }
         const data = await getIMDbInfo(id);
         if (!data)
             return;
