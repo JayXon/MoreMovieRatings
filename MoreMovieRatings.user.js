@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.6.8
+// @version      0.6.9
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -324,49 +324,20 @@ function insertDoubanInfo(name, value) {
         const data = await getDoubanInfo(id);
         if (!data)
             return;
-        let button_container = document.querySelector('div[class^=RatingBar__ButtonContainer]') || document.querySelector('div[class^=TitleBlock__ButtonContainer]');
-        if (button_container) {
-            const imdb_rating = button_container.firstElementChild;
-            let douban_rating = imdb_rating.cloneNode(true);
-            douban_rating.firstElementChild.textContent = 'Douban RATING';
-            douban_rating.children[1].href = data.url;
-            douban_rating.children[1].target = '_blank';
-            douban_rating.children[1].title = data.title;
-            douban_rating.querySelector('span[class^=AggregateRatingButton__RatingScore]').textContent = data.rating.average;
-            douban_rating.querySelector('div[class^=AggregateRatingButton__TotalRatingAmount]').textContent = data.rating.numRaters;
-            imdb_rating.insertAdjacentElement('afterend', douban_rating);
+        const imdb_rating = document.querySelector('.rating-bar__base-button');
+        if (!imdb_rating) {
+            console.log('rating bar not found, IMDb UI updated again?');
             return;
         }
 
-        // old UI, to be removed
-        let review_bar = document.querySelector('div.titleReviewBar');
-        if (!review_bar) {
-            review_bar = document.createElement('div');
-            review_bar.setAttribute('class', 'titleReviewBar');
-            const wrapper = document.querySelector('div.plot_summary_wrapper');
-            if (!wrapper)
-                return;
-            wrapper.appendChild(review_bar);
-        } else {
-            const divider = document.createElement('div');
-            divider.setAttribute('class', 'divider');
-            review_bar.insertBefore(divider, review_bar.firstChild);
-        }
-        review_bar.style.display = 'inline-table';
-        const douban_item = document.createElement('div');
-        douban_item.setAttribute('class', 'titleReviewBarItem');
-        const num_raters = data.rating.numRaters.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
-        douban_item.insertAdjacentHTML('beforeend',
-            '<div style="background: url(https://images-na.ssl-images-amazon.com/images/G/01/imdb/images/title/title_overview_sprite-1705639977._V_.png) no-repeat; background-position: -15px -124px; line-height: 14px; padding-left: 34px; font-size: 10px"><div class="ratingValue">' +
-            `<strong><span style="font-size: 22px; font-weight: normal; font-family: Arial">${data.rating.average}</span></strong>` +
-            `<span>/</span><span style="color: #6b6b6b">${data.rating.max}</span></div>` +
-            `<span><a href="${data.url}collections" target=_blank>${num_raters}</a>` +
-            ` from <a href="${data.url}" target=_blank>Douban</a></span>`
-        );
-        // Style fix if titleReviewBar can't fit in one line
-        if (document.querySelectorAll('div.titleReviewBarItem').length >= 3)
-            if (document.querySelector('.minPosterWithPlotSummaryHeight'))
-                douban_item.style.marginBottom = '8px';
-        review_bar.insertBefore(douban_item, review_bar.firstChild);
+        let douban_rating = imdb_rating.cloneNode(true);
+        douban_rating.firstElementChild.textContent = 'Douban RATING';
+        douban_rating.children[1].href = data.url;
+        douban_rating.children[1].target = '_blank';
+        douban_rating.children[1].title = data.title;
+        const rating_div = douban_rating.querySelector('div[data-testid="hero-rating-bar__aggregate-rating__score"]');
+        rating_div.firstElementChild.textContent = data.rating.average;
+        rating_div.nextElementSibling.nextElementSibling.textContent = data.rating.numRaters;
+        imdb_rating.insertAdjacentElement('beforebegin', douban_rating);
     }
 })();
