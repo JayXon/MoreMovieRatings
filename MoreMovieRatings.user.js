@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.6.9
+// @version      0.7.0
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -16,10 +16,12 @@
 
 'use strict';
 
-function getURL_GM(url) {
+function getURL_GM(url, headers, data) {
     return new Promise(resolve => GM.xmlHttpRequest({
-        method: 'GET',
+        method: data ? 'POST' : 'GET',
         url: url,
+        headers: headers,
+        data: data,
         onload: function (response) {
             if (response.status >= 200 && response.status < 400) {
                 resolve(response.responseText);
@@ -35,15 +37,15 @@ function getURL_GM(url) {
     }));
 }
 
-async function getJSON_GM(url) {
-    const data = await getURL_GM(url);
+async function getJSON_GM(url, headers, post_data) {
+    const data = await getURL_GM(url, headers, post_data);
     if (data) {
         return JSON.parse(data);
     }
 }
 
-async function getJSONP_GM(url) {
-    const data = await getURL_GM(url);
+async function getJSONP_GM(url, headers, post_data) {
+    const data = await getURL_GM(url, headers, post_data);
     if (data) {
         const end = data.lastIndexOf(')');
         const [, json] = data.substring(0, end).split('(', 2);
@@ -88,14 +90,19 @@ async function getIMDbInfo(id) {
     return omdb_data;
 }
 
+async function getDoubanAPI(query) {
+    return await getJSON_GM(`https://api.douban.com/v2/${query}`, {
+        "Content-Type": "application/x-www-form-urlencoded; charset=utf8",
+    }, "apikey=0ab215a8b1977939201640fa14c66bab");
+}
+
 async function getDoubanInfo(id) {
-    // TODO: Remove this API completely if it doesn't come back.
-    const data = await getJSON_GM(`https://api.douban.com/v2/movie/imdb/${id}?apikey=0df993c66c0c636e29ecbb5344252a4a`);
+    const data = await getDoubanAPI(`movie/imdb/${id}`);
     if (data) {
         if (isEmpty(data.alt))
             return;
         const url = data.alt.replace('/movie/', '/subject/') + '/';
-        return { url, rating: data.rating };
+        return { url, rating: data.rating, title: data.title };
     }
     // Fallback to search.
     const search = await getJSON_GM(`https://movie.douban.com/j/subject_suggest?q=${id}`);
@@ -177,7 +184,7 @@ function insertDoubanInfo(name, value) {
             rating_wrap.className = 'rating_wrap';
             sectl.appendChild(rating_wrap);
 
-            const data = await getJSON_GM(`https://api.douban.com/v2/movie/${douban_id}?apikey=0df993c66c0c636e29ecbb5344252a4a`)
+            const data = await getDoubanAPI(`movie/${douban_id}`)
 
             if (data && data.rating && !isEmpty(data.rating.average)) {
                 insertDoubanRatingDiv(rating_wrap, '豆瓣评分', data.rating.average, `https://movie.douban.com/subject/${douban_id}/collections`, data.rating.numRaters);
@@ -337,7 +344,9 @@ function insertDoubanInfo(name, value) {
         douban_rating.children[1].title = data.title;
         const rating_div = douban_rating.querySelector('div[data-testid="hero-rating-bar__aggregate-rating__score"]');
         rating_div.firstElementChild.textContent = data.rating.average;
-        rating_div.nextElementSibling.nextElementSibling.textContent = data.rating.numRaters;
+        rating_div.nextElementSibling.nextElementSibling.textContent = new Intl.NumberFormat("en-US", {
+            notation: 'compact',
+        }).format(data.rating.numRaters);
         imdb_rating.insertAdjacentElement('beforebegin', douban_rating);
     }
 })();
