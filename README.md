@@ -18,6 +18,10 @@ Show IMDb ratings on Douban, and vice versa
 
 ![IMDb Screenshot](https://github.com/JayXon/MoreMovieRatings/raw/master/imdb.png)
 
+### Letterboxd
+
+* IMDb ratings, number of voters and histogram
+* Douban ratings and number of voters (no histogram data, letterboxd histogram is shown)
 
 ## Install
 Make sure you have a working userscript manager (`Greasemonkey`, `Tampermonkey`, etc.)
