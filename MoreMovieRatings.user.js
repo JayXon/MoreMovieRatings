@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.7.1
+// @version      0.7.2
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
@@ -161,6 +161,45 @@ function insertDoubanInfo(name, value) {
             info.insertAdjacentHTML('beforeend', '<br>');
         info.insertAdjacentHTML('beforeend', `<span class="pl">${name}:</span> ${value}<br>`);
     }
+}
+
+function insertLetterboxdRating(ratings, title, title_href, rating, link, num_raters, histogram) {
+    let new_rating = ratings.cloneNode(true);
+    new_rating.querySelector('a[href$="/fans/"]')?.remove();
+    const title_element = new_rating.querySelector('a[href$="/ratings/"]');
+    title_element.textContent = title;
+    title_element.href = title_href;
+    title_element.target = '_blank';
+    let average_element = new_rating.querySelector('a.display-rating');
+    if (!average_element) {
+        const average_span = document.createElement('span');
+        average_span.classList.add('average-rating');
+        average_element = document.createElement('a');
+        average_element.classList.add('tooltip');
+        average_element.classList.add('display-rating');
+        average_span.append(average_element);
+        new_rating.querySelector('.rating-histogram').before(average_span);
+    }
+    const average_rating = rating / 2;
+    average_element.textContent = average_rating.toFixed(1);
+    average_element.href = link;
+    average_element.target = '_blank';
+    average_element.title = `Weighted average of ${average_rating.toFixed(2)} based on ${new Intl.NumberFormat("en-US").format(num_raters)} ratings`;
+    if (histogram) {
+        const histogram_elements = new_rating.querySelectorAll('li i');
+        const max = Math.max(...Object.values(histogram));
+        for (let i = 10; i > 0; i--) {
+            const current = histogram[i];
+            const percent = current * 100 / num_raters;
+            if (!histogram_elements[i - 1].previousSibling) {
+                histogram_elements[i - 1].before(histogram_elements[i - 1].parentNode.dataset.originalTitle.replace(/No/, current) + `(${~~percent}%)`)
+            } else {
+                histogram_elements[i - 1].previousSibling.textContent = histogram_elements[i - 1].previousSibling.textContent.replace(/^[\d,]+/, current).replace(/\d+%/, ~~percent + '%');
+            }
+            histogram_elements[i - 1].style = `height: ${Math.max(44 / max * current, 1)}px`;
+        }
+    }
+    ratings.after(new_rating);
 }
 
 (async () => {
@@ -363,45 +402,11 @@ function insertDoubanInfo(name, value) {
         }
 
         if (imdb_data && !isEmpty(imdb_data.imdbRating)) {
-            let imdb_rating = ratings.cloneNode(true);
-            imdb_rating.querySelector('a[href$="/fans/"]')?.remove();
-            const title_element = imdb_rating.querySelector('a[title]');
-            title_element.textContent = 'IMDb';
-            title_element.href = 'https://www.imdb.com/title/' + id;
-            title_element.target = '_blank';
-            const average_element = imdb_rating.querySelector('a.display-rating');
-            const imdb_average = imdb_data.imdbRating / 2;
-            average_element.textContent = imdb_average.toFixed(1);
-            average_element.href = `https://www.imdb.com/title/${id}/ratings`;
-            average_element.target = '_blank';
-            average_element.title = `Weighted average of ${imdb_average.toFixed(2)} based on ${new Intl.NumberFormat("en-US").format(imdb_data.imdbVotes)} ratings`;
-            if (imdb_data.histogram) {
-                const histogram_elements = imdb_rating.querySelectorAll('li a');
-                const max = Math.max(...Object.values(imdb_data.histogram));
-                for (let i = 10; i > 0; i--) {
-                    const current = imdb_data.histogram[i];
-                    const percent = current * 100 / imdb_data.imdbVotes;
-                    histogram_elements[i - 1].firstChild.textContent = histogram_elements[i - 1].firstChild.textContent.replace(/^[\d,]+/, current).replace(/\d+%/, ~~percent + '%');
-                    histogram_elements[i - 1].querySelector('i').style = `height: ${44 / max * current}px`;
-                }
-            }
-            ratings.after(imdb_rating);
+            insertLetterboxdRating(ratings, 'IMDb', 'https://www.imdb.com/title/' + id, imdb_data.imdbRating, `https://www.imdb.com/title/${id}/ratings`, imdb_data.imdbVotes, imdb_data.histogram)
         }
 
         if (douban_data) {
-            let douban_rating = ratings.cloneNode(true);
-            douban_rating.querySelector('a[href$="/fans/"]')?.remove();
-            const title_element = douban_rating.querySelector('a[title]');
-            title_element.textContent = 'Douban';
-            title_element.href = douban_data.url;
-            title_element.target = '_blank';
-            const average_element = douban_rating.querySelector('a.display-rating');
-            const douban_average = douban_data.rating.average / 2;
-            average_element.textContent = douban_average.toFixed(1);
-            average_element.href = douban_data.url + 'comments';
-            average_element.target = '_blank';
-            average_element.title = `Weighted average of ${douban_average.toFixed(2)} based on ${new Intl.NumberFormat("en-US").format(douban_data.rating.numRaters)} ratings`;
-            ratings.after(douban_rating);
+            insertLetterboxdRating(ratings, 'Douban', douban_data.url, douban_data.rating.average, douban_data.url + 'comments', douban_data.rating.numRaters, null)
         }
     }
 })();
