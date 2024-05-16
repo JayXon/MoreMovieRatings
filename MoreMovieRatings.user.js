@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         MoreMovieRatings
 // @namespace    http://www.jayxon.com/
-// @version      0.7.2
+// @version      0.7.3
 // @description  Show IMDb ratings on Douban, and vice versa
 // @description:zh-CN 豆瓣和IMDb互相显示评分
 // @author       JayXon
 // @match        *://movie.douban.com/subject/*
+// @match        *://www.douban.com/personage/*
 // @match        *://www.imdb.com/title/tt*
 // @match        *://letterboxd.com/film/*
 // @grant        GM.xmlHttpRequest
@@ -202,6 +203,17 @@ function insertLetterboxdRating(ratings, title, title_href, rating, link, num_ra
     ratings.after(new_rating);
 }
 
+function linkifyIMDbNode(text_node, url_base) {
+    const id = text_node.textContent.trim();
+    let a = document.createElement('a');
+    a.href = url_base + id;
+    a.target = '_blank';
+    a.appendChild(document.createTextNode(id));
+    text_node.replaceWith(a);
+    a.insertAdjacentText('beforebegin', ' ');
+    return id;
+}
+
 (async () => {
     let host = location.hostname;
     if (host === 'movie.douban.com') {
@@ -242,13 +254,7 @@ function insertLetterboxdRating(ratings, title, title_href, rating, link, num_ra
             return;
         }
         const text_node = imdb_text.nextSibling;
-        const id = text_node.textContent.trim();
-        let a = document.createElement('a');
-        a.href = 'https://www.imdb.com/title/' + id;
-        a.target = '_blank';
-        a.appendChild(document.createTextNode(id));
-        text_node.replaceWith(a);
-        a.insertAdjacentText('beforebegin', ' ');
+        const id = linkifyIMDbNode(text_node, 'https://www.imdb.com/title/');
 
         const data = await getIMDbInfo(id);
         if (!data)
@@ -363,6 +369,12 @@ function insertLetterboxdRating(ratings, title, title_href, rating, link, num_ra
         // Box office
         if (!isEmpty(data.BoxOffice)) {
             insertDoubanInfo('票房', data.BoxOffice);
+        }
+    } else if (host === 'www.douban.com') {
+        // www.douban.com/personage/*
+        let person_id_node = [...document.querySelectorAll('span.value')].find(s => s.innerText.trim().match(/^nm\d+/));
+        if (person_id_node) {
+            linkifyIMDbNode(person_id_node, 'https://www.imdb.com/name/');
         }
     } else if (host === 'www.imdb.com') {
         const id = location.href.match(/tt\d+/);
